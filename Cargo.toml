@@ -1,0 +1,12 @@
+[package]
+name = "primer"
+version = "0.1.0"
+edition = "2021"
+description = "PRIME offload helper for multi-GPU Linux systems"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dialog = "0.3.0"
+udev = "0.7.0"
+derive-error = "0.0.5"
+colored = "2.0.0"
