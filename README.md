@@ -36,4 +36,4 @@ primer steam
 ### NVIDIA
 | GPU | Driver | Enclosure | Working |
 | --- | --- | --- | --- |
-| 3070 | nvidia-open-dkms-520.56.06-1 | Core X | [x]
+| 3070 | nvidia-open-dkms-520.56.06-1 | Core X | yes
