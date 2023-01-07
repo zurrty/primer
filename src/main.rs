@@ -181,6 +181,10 @@ pub fn prime_run(args: Vec<String>) -> Result<(), Error> {
 
 fn main() -> Result<(), Error> {
     let mut args: Vec<String> = std::env::args().collect();
+    if args.is_empty() {
+        println!("No command provided. Exiting...");
+        return Ok(())
+    }
     args.remove(0);
     prime_run(args).unwrap();
     Ok(())
