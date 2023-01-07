@@ -14,6 +14,7 @@ pub enum Error {
     Io(std::io::Error),
     DeviceNotFound,
     InvalidProperty,
+    EmptyCommand,
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -88,6 +89,9 @@ impl GPU {
             Some(pci) => pci,
             None => return Err(Error::InvalidProperty),
         };
+        if command.is_empty() {
+            return Err(Error::EmptyCommand);
+        }
         let mut cmd = std::process::Command::new(command.remove(0).as_str());
         cmd.args(command);
         match self.vendor {
@@ -181,12 +185,19 @@ pub fn prime_run(args: Vec<String>) -> Result<(), Error> {
 
 fn main() -> Result<(), Error> {
     let mut args: Vec<String> = std::env::args().collect();
-    if args.is_empty() {
+    if args.len() == 0 {
         println!("No command provided. Exiting...");
-        return Ok(())
+        return Ok(());
     }
     args.remove(0);
-    prime_run(args).unwrap();
+    if let Err(err) = prime_run(args) {
+        match err {
+            Error::Io(io) => eprintln!("Io Error: {:?}", io),
+            Error::DeviceNotFound => eprintln!("No device found!"),
+            Error::InvalidProperty => eprintln!("GPU system device has invalid properties."),
+            Error::EmptyCommand => println!("Usage: primer <command>"),
+        }
+    }
     Ok(())
 }
 
