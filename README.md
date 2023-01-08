@@ -7,11 +7,11 @@ PRIME GPU offload helper for Wayland systems, written in Rust.
 * [Usage](README.md#usage)
 * [Tested Hardware](README.md#tested-hardware)
 ## Installation
-### Arch Linux (AUR) (not uploaded yet)
+### Arch Linux (AUR)
 ```
 paru -S primer-git
 ```
-paru is an AUR helper, also written in rust (i have a rust problem)
+paru is an AUR helper thats also written in rust (i have a rust problem)
 ### From Source
 ```
 git clone https://github.com/zurrty/primer.git
