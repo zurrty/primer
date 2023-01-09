@@ -2,7 +2,6 @@
 pub mod config;
 
 use colored::*;
-use dialog::DialogBox;
 use std::process::Command;
 use udev::{Device, Enumerator};
 

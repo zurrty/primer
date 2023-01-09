@@ -2,7 +2,7 @@
 name = "primer"
 version = "0.2.0"
 edition = "2021"
-description = "PRIME offload helper for multi-GPU Linux systems"
+description = "PRIME GPU offload helper for Linux systems"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

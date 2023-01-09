@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-use std::{collections::HashMap, io};
 use tini::Ini;
 
 use crate::{Error, Vendor};
@@ -45,7 +44,7 @@ impl Config {
         })
     }
     pub fn save(&self) -> Result<(), super::Error> {
-        let mut ini = Ini::new()
+        Ini::new()
             .section("general")
             .item("first_use", false)
             .item_vec(
@@ -56,8 +55,8 @@ impl Config {
                     .map(|v| v.to_string())
                     .collect::<Vec<String>>(),
             )
-            .item("kill_on_unplug", self.kill_on_unplug);
-        ini.to_file(config_path().as_path())
+            .item("kill_on_unplug", self.kill_on_unplug)
+            .to_file(config_path().as_path())
             .map_err(|e| Error::Io(e))
     }
 }

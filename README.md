@@ -8,6 +8,7 @@ PRIME GPU offload helper for Wayland systems, written in Rust.
 * [Supported Drivers](README.md#supported-drivers)
 * [Tested Hardware](README.md#tested-hardware)
 ## Installation
+A dialog library is recommended. See if your distribution has `zenity` or `dialog`.
 ### Arch Linux (AUR)
 ```sh
 # for yay
