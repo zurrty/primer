@@ -12,8 +12,9 @@ extern crate derive_error;
 #[derive(Error, Debug)]
 pub enum Error {
     Io(std::io::Error),
+    Ini(tini::Error),
     DeviceNotFound,
-    InvalidProperty,
+    InvalidDevice,
     EmptyCommand,
 }
 
@@ -87,7 +88,7 @@ impl GPU {
         );
         let pci = match self.pci_slot() {
             Some(pci) => pci,
-            None => return Err(Error::InvalidProperty),
+            None => return Err(Error::InvalidDevice),
         };
         if command.is_empty() {
             return Err(Error::EmptyCommand);
@@ -119,14 +120,14 @@ fn find_gpus() -> Result<Vec<GPU>, Error> {
             let vendor = match driver {
                 "nvidia" => Some(Vendor::NVIDIA),
                 "i915" => Some(Vendor::Intel),
-                "radv" => Some(Vendor::AMD),
+                "radv" | "radeon" => Some(Vendor::AMD),
                 _ => None,
             }?;
             let name = dev
                 .property_value("ID_MODEL_FROM_DATABASE")
                 .map_or("", |name| name.to_str().unwrap_or(""))
                 .to_string();
-            let integrated = name.to_lowercase().contains("integrated"); // theres a better way probably but it works for now
+            let integrated = name.to_lowercase().contains("integrated"); // theres probably a better way to do this, but this is good for now
             Some(GPU {
                 vendor,
                 name,
@@ -143,43 +144,35 @@ fn find_gpus() -> Result<Vec<GPU>, Error> {
 }
 
 pub fn prime_run(args: Vec<String>) -> Result<(), Error> {
-    println!("{:?}", args);
     let mut config = config::Config::open()?;
     if config.first_use {
-        dialog::Message::new("It seems that it's your first time using primer, welcome!\nYou can edit the config at \"~/.config/primer/config.txt\"")
-        .title("Primer")
-        .show()
-        .expect("Failed to show welcome dialog!");
+        log::info("It seems that it's your first time using primer, welcome!\nYou can edit the config at \"~/.config/primer/config.ini\"");
         config.first_use = false;
         config.save()?;
     }
     let mut gpus = match find_gpus() {
         Ok(gpus) => gpus,
         Err(e) => {
-            dialog::Message::new("Primer failed: no graphics device was found. Please make sure you have the right drivers installed for your system.")
-                .title("Primer Error")
-                .show()
-                .unwrap();
+            log::error("No graphics device was found. Please make sure you have the right drivers installed for your system.");
             return Err(e);
         }
     };
     gpus.sort_by(|a, b| {
         config
             .gpu_priority
-            .get(&a.vendor)
-            .cmp(&config.gpu_priority.get(&b.vendor))
+            .clone()
+            .iter()
+            .position(|p| p == &a.vendor)
+            .cmp(&config.gpu_priority.iter().position(|p| p == &b.vendor))
     });
     let gpu = match gpus.first() {
         Some(gpu) => gpu,
         None => return Err(Error::DeviceNotFound),
     };
     if gpu.integrated {
-        dialog::Message::new("No discrete GPU detected, using integrated graphics")
-            .title("Primer")
-            .show()
-            .unwrap();
+        log::info("No discrete GPU detected, using integrated graphics.");
     }
-    gpu.prepare_run(args)?.spawn()?.wait()?;
+    gpu.prepare_run(args)?.spawn()?;
     Ok(())
 }
 
@@ -192,13 +185,34 @@ fn main() -> Result<(), Error> {
     args.remove(0);
     if let Err(err) = prime_run(args) {
         match err {
-            Error::Io(io) => eprintln!("Io Error: {:?}", io),
-            Error::DeviceNotFound => eprintln!("No device found!"),
-            Error::InvalidProperty => eprintln!("GPU system device has invalid properties."),
+            Error::Io(err) => log::error(err),
+            Error::Ini(err) => log::error(err),
+            Error::DeviceNotFound => log::error("No device found!"),
+            Error::InvalidDevice => log::error("Graphics device invalid.\nMake sure you have the correct, and latest drivers."),
             Error::EmptyCommand => println!("Usage: primer <command>"),
         }
     }
     Ok(())
+}
+
+mod log {
+    use dialog::DialogBox;
+    pub fn show(msg: impl Into<String>) {
+        dialog::Message::new(msg.into())
+            .title("Primer")
+            .show()
+            .unwrap_or_else(|_| eprintln!("Failed to open dialog!"))
+    }
+    pub fn info<D: std::fmt::Debug>(msg: D) {
+        let text = format!("Primer Info: {:?}", msg);
+        println!("{}", &text);
+        show(text);
+    }
+    pub fn error<D: std::fmt::Debug>(msg: D) {
+        let text = format!("Primer Error: {:?}", msg);
+        eprintln!("{}", &text);
+        show(text)
+    }
 }
 
 #[cfg(test)]

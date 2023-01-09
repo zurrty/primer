@@ -5,13 +5,18 @@ PRIME GPU offload helper for Wayland systems, written in Rust.
 ## Table of Contents
 * [Installation](README.md#installation)
 * [Usage](README.md#usage)
+* [Supported Drivers](README.md#supported-drivers)
 * [Tested Hardware](README.md#tested-hardware)
 ## Installation
-### Arch Linux (AUR) (not uploaded yet)
-```
+### Arch Linux (AUR)
+```sh
+# for yay
+yay -S primer-git
+
+# for paru
 paru -S primer-git
 ```
-paru is an AUR helper, also written in rust (i have a rust problem)
+
 ### From Source
 ```
 git clone https://github.com/zurrty/primer.git
@@ -31,10 +36,15 @@ If you want all of your Steam games to use your dedicated graphics (when availab
 ```
 primer steam
 ```
-
 The config is stored at `~/.config/primer/config.txt`. 
-## Tested Hardware
 
+## Supported Drivers
+
+* `nvidia-open`
+* `radeon`
+* `i915`
+
+## Tested Hardware
 ### NVIDIA
 | GPU | Driver | Enclosure | Working |
 | --- | --- | --- | --- |
