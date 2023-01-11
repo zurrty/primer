@@ -9,6 +9,7 @@ PRIME GPU offload helper for Wayland systems, written in Rust.
 * [Tested Hardware](README.md#tested-hardware)
 ## Installation
 A dialog library is recommended. See if your distribution has `zenity` or `dialog`.
+
 ### Arch Linux (AUR)
 ```sh
 # for yay
@@ -18,15 +19,19 @@ yay -S primer-git
 paru -S primer-git
 ```
 
+### Binary
+Binary downloads are included with each [release](https://github.com/zurrty/primer/releases).
+
 ### From Source
 ```
 git clone https://github.com/zurrty/primer.git
 cd primer
 cargo build --profile release
 ```
-Build Dependencies:
-* systemd-libs (sorry artix users)
+Dependencies:
+* systemd (sorry artix users)
 * rust (obviously)
+* zenity (for GUI prompts)
 
 Note that Rust needs to be installed to build primer. See if your distribution has a `rustup` package.
 
@@ -38,6 +43,8 @@ If you want all of your Steam games to use your dedicated graphics (when availab
 primer steam
 ```
 The config is stored at `~/.config/primer/config.txt`. 
+
+Note for eGPU users: Don't disconnect your eGPU while primer is running, as it may cause your system to freeze.
 
 ## Supported Drivers
 
