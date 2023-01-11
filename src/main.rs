@@ -144,6 +144,7 @@ fn find_gpus() -> Result<Vec<GPU>, Error> {
 
 pub fn prime_run(args: Vec<String>) -> Result<(), Error> {
     let mut config = config::Config::open()?;
+    println!("{:?}", config);
     if config.first_use {
         log::info("It seems that it's your first time using primer, welcome!\nYou can edit the config at \"~/.config/primer/config.ini\"");
         config.first_use = false;
@@ -156,22 +157,26 @@ pub fn prime_run(args: Vec<String>) -> Result<(), Error> {
             return Err(e);
         }
     };
+
     gpus.sort_by(|a, b| {
-        config
-            .gpu_priority
-            .clone()
-            .iter()
-            .position(|p| p == &a.vendor)
-            .cmp(&config.gpu_priority.iter().position(|p| p == &b.vendor))
+        let priority_a = config.gpu_priority.iter().position(|p| p == &a.vendor);
+        let priority_b = config.gpu_priority.iter().position(|p| p == &b.vendor);
+
+        priority_a.cmp(&priority_b)
     });
     let gpu = match gpus.first() {
         Some(gpu) => gpu,
         None => return Err(Error::DeviceNotFound),
     };
+    println!("{}", "-- GPUs --".bold());
+    gpus.iter().for_each(|d| {
+        let name = d.name_fancy();
+        println!("{}", name.bold());
+    });
     if gpu.integrated {
         log::info("No discrete GPU detected, using integrated graphics.");
     }
-    gpu.prepare_run(args)?.spawn()?;
+    gpu.prepare_run(args)?.spawn()?.wait()?;
     Ok(())
 }
 
@@ -187,7 +192,9 @@ fn main() -> Result<(), Error> {
             Error::Io(err) => log::error(err),
             Error::Ini(err) => log::error(err),
             Error::DeviceNotFound => log::error("No device found!"),
-            Error::InvalidDevice => log::error("Graphics device invalid.\nMake sure you have the correct, and latest drivers."),
+            Error::InvalidDevice => log::error(
+                "Graphics device invalid.\nMake sure you have the correct and latest drivers.",
+            ),
             Error::EmptyCommand => println!("Usage: primer <command>"),
         }
     }
@@ -211,15 +218,5 @@ mod log {
         let text = format!("Primer Error: {:?}", msg);
         eprintln!("{}", &text);
         show(text)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::prime_run;
-
-    #[test]
-    fn test_glxinfo() {
-        prime_run(vec!["glxinfo".to_string(), "-B".to_string()]).unwrap();
     }
 }

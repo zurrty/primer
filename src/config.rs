@@ -3,10 +3,10 @@ use tini::Ini;
 
 use crate::{Error, Vendor};
 
+#[derive(Debug, Clone)]
 pub struct Config {
     pub first_use: bool,
     pub gpu_priority: Vec<Vendor>,
-    pub kill_on_unplug: bool,
 }
 
 impl Default for Config {
@@ -14,7 +14,6 @@ impl Default for Config {
         Self {
             first_use: true,
             gpu_priority: vec![Vendor::NVIDIA, Vendor::AMD, Vendor::Intel],
-            kill_on_unplug: true,
         }
     }
 }
@@ -24,23 +23,24 @@ impl Config {
         let path = config_path();
         std::fs::create_dir_all(&path.parent().unwrap())?;
         if !std::fs::try_exists(&path)? {
-            std::fs::File::create(path)?;
+            std::fs::File::create(&path)?;
         }
+
         let ini = Ini::from_file(&config_path())?;
         Ok(Self {
             first_use: ini.get("general", "first_use").unwrap_or(true),
             gpu_priority: ini
-                .get_vec::<String>("general", "gpu_priority")
-                .unwrap_or(vec!["nvidia".into(), "amd".into(), "intel".into()])
+                .get::<String>("general", "gpu_priority")
+                .unwrap_or(String::from("nvidia, amd, intel"))
+                .split(",")
                 .into_iter()
-                .filter_map(|vendor| match vendor.trim() {
+                .filter_map(|vendor| match vendor.to_ascii_lowercase().trim() {
                     "nvidia" => Some(Vendor::NVIDIA),
                     "amd" => Some(Vendor::AMD),
                     "intel" => Some(Vendor::Intel),
                     _ => None,
                 })
                 .collect(),
-            kill_on_unplug: ini.get("general", "kill_on_unplug").unwrap_or(true),
         })
     }
     pub fn save(&self) -> Result<(), super::Error> {
@@ -55,7 +55,6 @@ impl Config {
                     .map(|v| v.to_string())
                     .collect::<Vec<String>>(),
             )
-            .item("kill_on_unplug", self.kill_on_unplug)
             .to_file(config_path().as_path())
             .map_err(|e| Error::Io(e))
     }
