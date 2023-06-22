@@ -1,3 +1,6 @@
+# ARCHIVED LOL!!!
+just type `DRI_PRIME=1` as an env variable!!
+
 # Primer
 
 PRIME GPU offload helper for Wayland systems, written in Rust.
